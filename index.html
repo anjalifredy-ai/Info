@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rikky // build log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FAFAF8;
+    --bg-soft: #F1F1EE;
+    --panel: #FFFFFF;
+    --line: #E4E4E0;
+    --text: #14161A;
+    --muted: #7A7E86;
+    --green: #0FA968;
+    --green-dim: #0C8054;
+    --amber: #C97A2E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(15,169,104,0.06), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(201,122,46,0.05), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,0.008) 0px, rgba(0,0,0,0.008) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+    z-index:0;
+    opacity:0.5;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 20px 80px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- nav / wordmark ---------- */
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:26px 0 34px;
+  }
+  .wordmark{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:-0.03em;
+    color:var(--text);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+  .wordmark .dot-accent{
+    color:var(--green);
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .nav-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    padding:9px 16px;
+    border-radius:8px;
+    text-decoration:none;
+    border:1px solid var(--line);
+    color:var(--text);
+    transition:border-color .25s ease, background .25s ease;
+  }
+  .nav-btn.primary{
+    background:var(--green);
+    color:#0B0E14;
+    border-color:var(--green);
+    font-weight:700;
+  }
+  .nav-btn:not(.primary):hover{
+    border-color:var(--green-dim);
+    background:var(--panel);
+  }
+
+  /* ---------- terminal hero ---------- */
+  .term{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 20px 50px -24px rgba(20,22,26,0.18);
+  }
+  .term-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    background:var(--bg-soft);
+    border-bottom:1px solid var(--line);
+  }
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .dot.r{background:#ff5f57;}
+  .dot.y{background:#febc2e;}
+  .dot.g{background:#28c840;}
+  .term-title{
+    margin-left:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .term-body{
+    padding:22px 18px 26px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    line-height:1.7;
+    min-height:190px;
+  }
+  .term-line{
+    opacity:0;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .term-line .ok{color:var(--green);}
+  .term-line .amb{color:var(--amber);}
+  .term-line .mut{color:var(--muted);}
+  .cursor{
+    display:inline-block;
+    width:8px;height:15px;
+    background:var(--green);
+    vertical-align:text-bottom;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  h1.hero-title{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:800;
+    font-size:clamp(28px, 8vw, 42px);
+    letter-spacing:-0.02em;
+    margin:28px 0 6px;
+    opacity:0;
+  }
+  .hero-sub{
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:46ch;
+    margin-bottom:36px;
+    opacity:0;
+  }
+  .accent{color:var(--green);}
+
+  /* ---------- section labels ---------- */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:16px;height:1px;
+    background:var(--line);
+  }
+
+  /* ---------- youtube featured card ---------- */
+  .yt-card{
+    display:block;
+    text-decoration:none;
+    background:linear-gradient(135deg, rgba(15,169,104,0.07), rgba(15,169,104,0.01));
+    border:1px solid rgba(15,169,104,0.25);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:52px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s ease, box-shadow .35s ease;
+  }
+  .yt-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--green);
+    box-shadow:0 20px 45px -20px rgba(15,169,104,0.28);
+  }
+  .yt-card::after{
+    content:"";
+    position:absolute;
+    top:-40%;left:-10%;
+    width:60%;height:180%;
+    background:linear-gradient(120deg, transparent, rgba(15,169,104,0.09), transparent);
+    transform:rotate(20deg);
+    transition:left .8s ease;
+  }
+  .yt-card:hover::after{left:120%;}
+  .yt-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .yt-icon{
+    width:46px;height:46px;
+    border-radius:10px;
+    background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .yt-icon svg{width:22px;height:22px;fill:#0B0E14;}
+  .yt-label-block{flex:1;}
+  .yt-label{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:17px;
+  }
+  .yt-handle{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:2px;
+  }
+  .yt-arrow{
+    color:var(--green);
+    font-size:20px;
+    transition:transform .3s ease;
+  }
+  .yt-card:hover .yt-arrow{transform:translate(4px,-4px);}
+  .yt-desc{
+    margin-top:14px;
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.6;
+  }
+
+  /* ---------- repo grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  @media(min-width:560px){
+    .grid{grid-template-columns:1fr 1fr;}
+  }
+  .repo-card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    text-decoration:none;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    min-height:120px;
+    position:relative;
+    opacity:0;
+    transform:translateY(14px);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, background .3s ease;
+  }
+  .repo-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--green-dim);
+    background:#141b28;
+  }
+  .repo-card:active{transform:translateY(0);}
+  .repo-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .repo-name{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--text);
+    word-break:break-word;
+  }
+  .repo-dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--green);
+    margin-top:6px;
+    flex-shrink:0;
+    box-shadow:0 0 6px rgba(15,169,104,0.4);
+  }
+  .repo-url{
+    color:var(--muted);
+    font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+    margin-top:10px;
+    word-break:break-all;
+  }
+  .repo-tag{
+    display:inline-block;
+    margin-top:12px;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  footer{
+    margin-top:60px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:var(--muted);
+    font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .status-live{
+    display:flex;align-items:center;gap:6px;
+  }
+  .status-live .repo-dot{margin:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+    .term-line, h1.hero-title, .hero-sub, .repo-card{opacity:1 !important; transform:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="nav">
+    <a href="#" class="wordmark">remon<span class="dot-accent">.</span>francis</a>
+    <div class="nav-links">
+      <a class="nav-btn" href="https://youtube.com/@supergokuyt-098?si=LTQEfrcHKZ3rLNtm" target="_blank" rel="noopener">YouTube</a>
+      <a class="nav-btn primary" href="#repoGrid">Projects</a>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="term-title">rikky@github-actions:~$</span>
+    </div>
+    <div class="term-body" id="termBody"></div>
+  </div>
+
+  <h1 class="hero-title" id="heroTitle">Built on a <span class="accent">phone.</span><br>Shipped anyway.</h1>
+  <p class="hero-sub" id="heroSub">No laptop, no desktop. Just GitHub's mobile web UI, cloud builds, and Vercel — every project below went from idea to live link this way.</p>
+
+  <a class="yt-card" href="https://youtube.com/@supergokuyt-098?si=LTQEfrcHKZ3rLNtm" target="_blank" rel="noopener">
+    <div class="yt-top">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="yt-icon">
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.8 12Z"/></svg>
+        </div>
+        <div class="yt-label-block">
+          <div class="yt-label">YouTube Channel</div>
+          <div class="yt-handle">@supergokuyt-098</div>
+        </div>
+      </div>
+      <span class="yt-arrow">↗</span>
+    </div>
+    <div class="yt-desc">Follow the build logs, launcher demos, and app walkthroughs.</div>
+  </a>
+
+  <div class="eyebrow">Live builds — Vercel</div>
+  <div class="grid" id="repoGrid">
+    <!-- injected -->
+  </div>
+
+  <footer>
+    <span>rikky's workshop</span>
+    <span class="status-live"><span class="repo-dot"></span> all systems live</span>
+  </footer>
+</div>
+
+<script>
+  const lines = [
+    { html: '<span class="mut">$</span> whoami', delay: 0 },
+    { html: '<span class="ok">rikky</span> <span class="mut">— independent dev, mobile-only workflow</span>', delay: 550 },
+    { html: '<span class="mut">$</span> git push origin main', delay: 1200 },
+    { html: '<span class="amb">→ triggering GitHub Actions...</span>', delay: 1750 },
+    { html: '<span class="ok">✓ build complete</span> <span class="mut">— deployed to vercel</span>', delay: 2500 },
+  ];
+
+  const termBody = document.getElementById('termBody');
+  lines.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'term-line';
+    div.innerHTML = l.html;
+    termBody.appendChild(div);
+  });
+  const lastLine = termBody.lastElementChild;
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  lastLine.appendChild(cursor);
+
+  function typeReveal(){
+    const els = document.querySelectorAll('.term-line');
+    els.forEach((el, i) => {
+      setTimeout(() => {
+        el.style.transition = 'opacity .35s ease';
+        el.style.opacity = '1';
+      }, lines[i].delay);
+    });
+
+    setTimeout(() => {
+      document.getElementById('heroTitle').style.transition = 'opacity .6s ease, transform .6s ease';
+      document.getElementById('heroTitle').style.transform = 'translateY(0)';
+      document.getElementById('heroTitle').style.opacity = '1';
+    }, 3000);
+    setTimeout(() => {
+      document.getElementById('heroSub').style.transition = 'opacity .6s ease';
+      document.getElementById('heroSub').style.opacity = '1';
+    }, 3250);
+
+    document.querySelectorAll('.repo-card').forEach((card, i) => {
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, 3500 + i * 90);
+    });
+  }
+
+  const repos = [
+    { name: "spaceai", url: "spaceai-xi.vercel.app", tag: "AI / Space", link: "https://spaceai-xi.vercel.app" },
+    { name: "ai-studio", url: "ai-studio-psi-ruddy.vercel.app", tag: "AI Studio", link: "https://ai-studio-psi-ruddy.vercel.app" },
+    { name: "laczekremo", url: "laczekremo.vercel.app", tag: "Web App", link: "https://laczekremo.vercel.app" },
+    { name: "travel", url: "travel-bay-nu.vercel.app", tag: "Travel / Flights", link: "https://travel-bay-nu.vercel.app" },
+    { name: "videalradar", url: "videalradar.vercel.app", tag: "Video Radar", link: "https://videalradar.vercel.app" },
+    { name: "rikkymovie", url: "rikkymovie.vercel.app", tag: "Streaming", link: "https://rikkymovie.vercel.app" },
+    { name: "remonlauncher", url: "remonlauncher.vercel.app", tag: "Launcher", link: "https://remonlauncher.vercel.app" },
+  ];
+
+  const grid = document.getElementById('repoGrid');
+  repos.forEach(r => {
+    const a = document.createElement('a');
+    a.className = 'repo-card';
+    a.href = r.link;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = `
+      <div class="repo-top">
+        <span class="repo-name">${r.name}</span>
+        <span class="repo-dot"></span>
+      </div>
+      <div>
+        <div class="repo-url">${r.url}</div>
+        <span class="repo-tag">${r.tag}</span>
+      </div>
+    `;
+    grid.appendChild(a);
+  });
+
+  window.addEventListener('DOMContentLoaded', typeReveal);
+  if(document.readyState !== 'loading') typeReveal();
+</script>
+</body>
+  </html>
